@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8000/api';
+const API_URL = 'http://korix-backend.onrender.com/api';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -27,7 +27,7 @@ api.interceptors.response.use(
       try {
         // Attempt to hit the refresh endpoint (this will automatically send the refresh_token cookie)
         const res = await axios.post(`${API_URL}/auth/refresh`, {}, { withCredentials: true });
-        
+
         // Save new token
         const newAccessToken = res.data.accessToken;
         localStorage.setItem('access_token', newAccessToken);
