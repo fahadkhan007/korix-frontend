@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Link } from 'react-router-dom';
 import { Sparkles, ArrowRight, Activity, Shield, Layers } from 'lucide-react';
 import './Home.css';
