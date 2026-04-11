@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
-import { FolderKanban, Users, Plus, UserPlus, CheckSquare, Trash2 } from 'lucide-react';
+import ChatPanel from '../components/Chat/ChatPanel';
+import { FolderKanban, Users, Plus, UserPlus, CheckSquare, Trash2, MessageSquare } from 'lucide-react';
 import { projectsService } from '../api/projects';
 import { tasksService, type TaskItem, type TaskPriority, type TaskStatus } from '../api/tasks';
 import './Dashboard.css'; // Reuse Dashboard UI containers
+import '../components/Chat/ChatPanel.css';
 
 const taskStatuses: TaskStatus[] = ['TODO', 'IN_PROGRESS', 'IN_REVIEW', 'DONE'];
 const taskPriorities: TaskPriority[] = ['LOW', 'MEDIUM', 'HIGH', 'URGENT'];
@@ -34,6 +36,7 @@ export default function ProjectDetails() {
   const [taskError, setTaskError] = useState('');
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [selfRole, setSelfRole] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'tasks' | 'chat' | 'subprojects' | 'members'>('tasks');
   const [newTask, setNewTask] = useState({
     title: '',
     description: '',
@@ -210,8 +213,43 @@ export default function ProjectDetails() {
                 </div>
               </div>
 
+              {/* Tab Bar */}
+              <div className="tab-bar">
+                <button
+                  className={`tab-btn ${activeTab === 'tasks' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('tasks')}
+                >
+                  <CheckSquare size={15} style={{ display: 'inline', marginRight: 6 }} />
+                  Tasks
+                </button>
+                <button
+                  className={`tab-btn ${activeTab === 'chat' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('chat')}
+                >
+                  <MessageSquare size={15} style={{ display: 'inline', marginRight: 6 }} />
+                  Chat
+                </button>
+                <button
+                  className={`tab-btn ${activeTab === 'subprojects' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('subprojects')}
+                >
+                  <FolderKanban size={15} style={{ display: 'inline', marginRight: 6 }} />
+                  Sub-Projects
+                </button>
+                <button
+                  className={`tab-btn ${activeTab === 'members' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('members')}
+                >
+                  <Users size={15} style={{ display: 'inline', marginRight: 6 }} />
+                  Members
+                </button>
+              </div>
+
+              {/* Tab Content */}
               <div className="dashboard-grid">
-                <section className="card section-card">
+
+                {/* ── TASKS TAB ── */}
+                {activeTab === 'tasks' && <section className="card section-card">
                   <div className="section-header">
                     <h3 className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <CheckSquare size={20} /> Tasks
@@ -379,10 +417,10 @@ export default function ProjectDetails() {
                       ))
                     )}
                   </div>
-                </section>
+                </section>}
 
-                {/* Sub-Projects List */}
-                <section className="card section-card">
+                {/* ── SUB-PROJECTS TAB ── */}
+                {activeTab === 'subprojects' && <section className="card section-card">
                   <div className="section-header">
                     <h3 className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <FolderKanban size={20} /> Sub-Projects
@@ -410,10 +448,10 @@ export default function ProjectDetails() {
                       ))
                     )}
                   </div>
-                </section>
+                </section>}
 
-                {/* Team Members Snapshot */}
-                <section className="card section-card">
+                {/* ── MEMBERS TAB ── */}
+                {activeTab === 'members' && <section className="card section-card">
                   <div className="section-header">
                     <h3 className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <Users size={20} /> Members
@@ -441,7 +479,11 @@ export default function ProjectDetails() {
                       </p>
                     )}
                   </div>
-                </section>
+                </section>}
+
+                {/* ── CHAT TAB ── */}
+                {activeTab === 'chat' && <ChatPanel projectId={project.id} />}
+
               </div>
             </>
           )}
