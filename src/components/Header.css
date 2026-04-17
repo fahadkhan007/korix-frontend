@@ -135,3 +135,26 @@
   margin-left: 0.5rem;
   cursor: pointer;
 }
+
+/* ── Mobile Responsiveness ────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .jira-search-bar {
+    display: none;
+  }
+  .header-center {
+    margin: 0 0.5rem;
+    flex: 0 1 auto;
+  }
+  .btn-primary-blue span {
+    display: none;
+  }
+  .btn-glass {
+    display: none;
+  }
+  .header-icon-group {
+    margin-left: 0;
+  }
+  .jira-header {
+    padding: 0 0.5rem;
+  }
+}

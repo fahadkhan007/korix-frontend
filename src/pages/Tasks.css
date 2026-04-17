@@ -164,3 +164,25 @@
   border: 1px dashed var(--color-border-strong);
   border-radius: var(--radius-md);
 }
+
+/* ── Mobile Responsiveness ────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .tasks-container {
+    padding: 0 1rem 1rem;
+  }
+  .tasks-card {
+    padding: 1rem;
+  }
+  .tasks-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .global-task-meta {
+    padding-left: 0;
+    gap: 0.5rem;
+  }
+  .global-task-desc {
+    padding-left: 0;
+  }
+}

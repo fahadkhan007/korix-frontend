@@ -110,3 +110,13 @@
   border-top: 1px solid rgba(255, 255, 255, 0.05);
   padding-top: 0.8rem;
 }
+
+/* ── Mobile Responsiveness ────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .projects-page-container {
+    padding: 0 1rem 1rem;
+  }
+  .projects-section-card {
+    padding: 1rem;
+  }
+}

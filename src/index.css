@@ -282,3 +282,13 @@ h1,h2,h3,h4,h5,h6 { color: var(--text-primary); font-weight: 600; line-height: 1
   background: var(--color-border);
   margin: 1.25rem 0;
 }
+
+/* ── Mobile Responsiveness ────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .page-container {
+    padding: 1rem;
+  }
+  .auth-layout {
+    padding: 1rem;
+  }
+}

@@ -117,3 +117,44 @@
   color: var(--accent-red);
   background-color: rgba(241, 91, 80, 0.1);
 }
+
+/* ── Mobile Responsiveness ────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .jira-sidebar {
+    width: 64px;
+    min-width: 64px;
+    overflow-x: hidden;
+  }
+  .jira-sidebar-header {
+    padding: 1.25rem 0;
+    justify-content: center;
+  }
+  .jira-logo-text { display: none; }
+  .jira-logo svg { margin: 0 !important; }
+  
+  .jira-nav-section-label { 
+    font-size: 0; 
+    padding: 0.5rem; 
+    justify-content: center; 
+  }
+  .jira-nav-section-label svg { 
+    font-size: 14px; 
+    margin: 0 auto; 
+  }
+  
+  .jira-nav-link {
+    justify-content: center;
+    padding: 0.75rem 0;
+    gap: 0;
+  }
+  .jira-nav-link span { display: none; }
+  .jira-nav-link .jira-proj-avatar { display: flex; }
+  
+  .jira-sidebar-footer { 
+    padding: 1rem 0; 
+    text-align: center; 
+  }
+  .jira-sidebar-footer .jira-nav-link span { 
+    display: none; 
+  }
+}

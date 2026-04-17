@@ -213,3 +213,19 @@
   border-radius: var(--radius-md);
   border: 1px dashed var(--color-border-strong);
 }
+
+/* ── Mobile Responsiveness ────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 0 1rem 1rem;
+  }
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+  .projects-list {
+    grid-template-columns: 1fr;
+  }
+}
