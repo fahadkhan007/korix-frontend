@@ -19,8 +19,7 @@ const AppLoader = () => (
   <div className="app-loader-screen">
     <div className="app-loader-card">
       <div className="app-loader-mark">
-        <div className="app-loader-orbit"></div>
-        <div className="app-loader-core">K</div>
+        <img src="/logo.svg" alt="Korix Loading" className="w-12 h-12 animate-pulse" />
       </div>
       <div className="app-loader-copy">
         <h2>Korix</h2>

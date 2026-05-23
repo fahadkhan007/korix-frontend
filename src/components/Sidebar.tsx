@@ -15,9 +15,9 @@ export default function Sidebar() {
   return (
     <aside className="jira-sidebar">
       <div className="jira-sidebar-header">
-        <div className="jira-logo">
-          <Grid size={16} strokeWidth={2.5} color="var(--accent-blue)" style={{ marginRight: 8 }} />
-          <span className="jira-logo-text">Korix</span>
+        <div className="jira-logo flex items-center gap-2">
+          <img src="/logo.svg" alt="Korix Logo" className="w-6 h-6" />
+          <span className="jira-logo-text font-semibold text-lg">Korix</span>
         </div>
       </div>
 
