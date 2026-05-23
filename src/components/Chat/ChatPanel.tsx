@@ -45,21 +45,38 @@ export default function ChatPanel({ projectId }: Props) {
   useEffect(() => {
     if (!conversation) return;
 
-    // Connect — auth token is read fresh from localStorage here
-    socket.connect();
+    const conversationId = conversation.id;
 
-    // Tell the server we want to be in this conversation's room
-    socket.emit('join-conversation', { conversationId: conversation.id });
-
-    // Confirm socket is ready so ChatInput enables
-    const handleConnect = () => setSocketReady(true);
+    // ── Always emit join-conversation from INSIDE the connect handler ──
+    // socket.connect() is async; if we emit immediately after it on an
+    // already-connected socket the server might miss it. Doing it here
+    // guarantees the server is ready before we join the room.
+    const handleConnect = () => {
+      socket.emit('join-conversation', { conversationId });
+      setSocketReady(true);
+    };
     const handleDisconnect = () => setSocketReady(false);
+    const handleConnectError = (err: Error) => {
+      console.error('[ChatPanel] socket connect_error:', err.message);
+      setSocketReady(false);
+    };
+    const handleReconnectFailed = () => {
+      console.error('[ChatPanel] socket reconnect_failed — giving up');
+      setSocketReady(false);
+    };
 
     socket.on('connect', handleConnect);
     socket.on('disconnect', handleDisconnect);
+    socket.on('connect_error', handleConnectError);
+    socket.on('reconnect_failed', handleReconnectFailed);
 
-    // If already connected (e.g. hot reload), mark ready immediately
-    if (socket.connected) setSocketReady(true);
+    // If already connected when this effect runs, join the room immediately
+    if (socket.connected) {
+      socket.emit('join-conversation', { conversationId });
+      setSocketReady(true);
+    } else {
+      socket.connect();
+    }
 
     // ── Step 3: Listen for real-time messages ─────────────────────────
     // When anyone in the room sends a message, server broadcasts 'new-message'
@@ -84,10 +101,13 @@ export default function ChatPanel({ projectId }: Props) {
     return () => {
       socket.off('connect', handleConnect);
       socket.off('disconnect', handleDisconnect);
+      socket.off('connect_error', handleConnectError);
+      socket.off('reconnect_failed', handleReconnectFailed);
       socket.off('new-message', handleNewMessage);
       socket.off('ai-typing', handleAiTyping);
     };
   }, [conversation]);
+
 
   // ── Step 4: Auto-scroll to bottom whenever messages or typing indicator changes
   useEffect(() => {
