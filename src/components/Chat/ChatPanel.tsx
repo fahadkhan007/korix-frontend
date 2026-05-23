@@ -17,6 +17,7 @@ export default function ChatPanel({ projectId }: Props) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const [socketReady, setSocketReady] = useState(false);
+  const [aiTyping, setAiTyping] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   // ── Step 1: Load conversation + message history via REST ─────────────
@@ -65,24 +66,33 @@ export default function ChatPanel({ projectId }: Props) {
     // to all clients in the room — including the sender
     const handleNewMessage = (message: Message) => {
       setMessages((prev) => [...prev, message]);
+      setAiTyping(false); // clear typing indicator when AI reply arrives
+    };
+
+    // ── Step 3b: Listen for AI typing indicator ───────────────────────
+    const handleAiTyping = ({ thinking }: { thinking: boolean }) => {
+      setAiTyping(thinking);
     };
 
     socket.on('new-message', handleNewMessage);
+    socket.on('ai-typing', handleAiTyping);
 
     // ── Cleanup: runs when component unmounts (user switches tab) ─────
-    // MUST remove listeners to prevent duplicates on remount
+    // IMPORTANT: Do NOT call socket.disconnect() here — the socket is a module-level
+    // singleton. Disconnecting kills any in-flight AI reply (Gemini can take 5-15s).
+    // Just remove our listeners and let the socket stay alive.
     return () => {
       socket.off('connect', handleConnect);
       socket.off('disconnect', handleDisconnect);
       socket.off('new-message', handleNewMessage);
-      socket.disconnect();
+      socket.off('ai-typing', handleAiTyping);
     };
   }, [conversation]);
 
-  // ── Step 4: Auto-scroll to bottom whenever messages change ───────────
+  // ── Step 4: Auto-scroll to bottom whenever messages or typing indicator changes
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, aiTyping]);
 
   // ── Step 5: Send a message ────────────────────────────────────────────
   // We emit to server and let the server broadcast it back via 'new-message'
@@ -131,6 +141,17 @@ export default function ChatPanel({ projectId }: Props) {
             currentUserId={user?.id ?? ''}
           />
         ))}
+
+        {/* KorixAI typing indicator */}
+        {aiTyping && (
+          <div className="ai-typing-indicator">
+            <span className="ai-typing-avatar">K</span>
+            <div className="ai-typing-dots">
+              <span /><span /><span />
+            </div>
+          </div>
+        )}
+
         {/* Invisible anchor — we scroll here on new messages */}
         <div ref={bottomRef} />
       </div>
