@@ -33,9 +33,8 @@ export default function RegisterPage() {
     try {
       const res = await authService.register({ name, email, password });
 
-      // Auto-login: store token and update auth context then go straight to dashboard
-      localStorage.setItem('access_token', res.accessToken);
-      loginState(res.user);
+      // Auto-login: store tokens and update auth context then go straight to dashboard
+      loginState(res.user, res.accessToken, res.refreshToken);
       navigate('/dashboard');
 
     } catch (err: any) {

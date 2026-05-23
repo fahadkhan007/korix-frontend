@@ -5,7 +5,7 @@ import { authService } from '../api/auth';
 interface AuthContextType {
   isAuthenticated: boolean;
   user: any;
-  loginState: (user: any) => void;
+  loginState: (user: any, accessToken: string, refreshToken: string) => void;
   logoutState: () => void;
   isLoading: boolean;
 }
@@ -19,26 +19,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const initAuth = async () => {
-      const token = localStorage.getItem('access_token');
-      if (token) {
-        try {
-          // Verify user exists and token is valid (this handles refresh implicitly if needed later)
-          const { user } = await authService.profile();
-          setUser(user);
-          setIsAuthenticated(true);
-        } catch (error) {
-          // Token is dead or refresh failed
-          localStorage.removeItem('access_token');
-          setIsAuthenticated(false);
-          setUser(null);
-        }
+      const accessToken = localStorage.getItem('access_token');
+      const refreshToken = localStorage.getItem('refresh_token');
+
+      // If we have neither token, skip — user is not logged in
+      if (!accessToken && !refreshToken) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        // Try to fetch profile (the interceptor will auto-refresh if the access token is expired)
+        const { user } = await authService.profile();
+        setUser(user);
+        setIsAuthenticated(true);
+      } catch (error) {
+        // Both access and refresh tokens are dead — clear everything
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('korix_user');
+        setIsAuthenticated(false);
+        setUser(null);
       }
       setIsLoading(false);
     };
     initAuth();
   }, []);
 
-  const loginState = (userData: any) => {
+  const loginState = (userData: any, accessToken: string, refreshToken: string) => {
+    localStorage.setItem('access_token', accessToken);
+    localStorage.setItem('refresh_token', refreshToken);
     setUser(userData);
     setIsAuthenticated(true);
   };
@@ -52,6 +62,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(null);
       setIsAuthenticated(false);
       localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      localStorage.removeItem('korix_user');
     }
   };
 

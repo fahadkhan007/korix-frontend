@@ -22,11 +22,8 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const { accessToken, user } = await authService.login({ email, password });
-      
-      localStorage.setItem('access_token', accessToken);
-      loginState(user);
-
+      const { accessToken, refreshToken, user } = await authService.login({ email, password });
+      loginState(user, accessToken, refreshToken);
       navigate('/dashboard');
     } catch (err: any) {
       setError(
