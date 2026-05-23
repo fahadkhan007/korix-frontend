@@ -45,7 +45,7 @@ const signUpSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
-  terms: z.literal(true, { errorMap: () => ({ message: "You must agree to the terms" }) }),
+  terms: z.literal(true, { error: "You must agree to the terms" }),
 });
 
 const forgotPasswordSchema = z.object({
@@ -172,13 +172,13 @@ function Auth({ className, defaultView = "sign-in", onNavigate, ...props }: Auth
 // Shared Components
 // --------------------------------
 
-interface AuthFormProps<T> {
-  onSubmit: (data: T) => Promise<void>;
+interface AuthFormProps {
+  onSubmit: React.FormEventHandler<HTMLFormElement>;
   children: React.ReactNode;
   className?: string;
 }
 
-function AuthForm<T>({ onSubmit, children, className }: AuthFormProps<T>) {
+function AuthForm({ onSubmit, children, className }: AuthFormProps) {
   return (
     <form
       onSubmit={onSubmit}
@@ -276,7 +276,7 @@ function AuthSignIn({ onForgotPassword, onSignUp }: AuthSignInProps) {
 
       <AuthError message={formState.error} />
 
-      <AuthForm<SignInFormValues> onSubmit={handleSubmit(onSubmit)}>
+      <AuthForm onSubmit={handleSubmit(onSubmit)}>
         <div className="space-y-2">
           <Label htmlFor="email" className="text-neutral-300">Email Address</Label>
           <Input
@@ -374,7 +374,7 @@ function AuthSignUp({ onSignIn }: AuthSignUpProps) {
 
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpSchema),
-    defaultValues: { name: "", email: "", password: "", terms: false },
+    defaultValues: { name: "", email: "", password: "", terms: false as unknown as true },
   });
 
   const terms = watch("terms");
@@ -413,7 +413,7 @@ function AuthSignUp({ onSignIn }: AuthSignUpProps) {
 
       <AuthError message={formState.error} />
 
-      <AuthForm<SignUpFormValues> onSubmit={handleSubmit(onSubmit)}>
+      <AuthForm onSubmit={handleSubmit(onSubmit as Parameters<typeof handleSubmit>[0])}>
         <div className="space-y-2">
           <Label htmlFor="name" className="text-neutral-300">Full Name</Label>
           <Input
@@ -471,8 +471,8 @@ function AuthSignUp({ onSignIn }: AuthSignUpProps) {
         <div className="flex items-center space-x-3 pt-2">
           <Checkbox
             id="terms"
-            checked={terms}
-            onCheckedChange={(checked) => setValue("terms", checked === true)}
+            checked={terms === true}
+            onCheckedChange={(checked) => setValue("terms", (checked === true) as unknown as true)}
             disabled={formState.isLoading}
             className="border-white/20 data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
           />
@@ -532,7 +532,7 @@ function AuthForgotPassword({ onSignIn, onSuccess }: AuthForgotPasswordProps) {
     defaultValues: { email: "" },
   });
 
-  const onSubmit = async () => {
+  const onSubmit = async (_data: ForgotPasswordFormValues) => {
     setFormState((prev) => ({ ...prev, isLoading: true, error: null }));
     try {
       await new Promise((resolve) => setTimeout(resolve, 1500)); // Simulate API call
@@ -573,7 +573,7 @@ function AuthForgotPassword({ onSignIn, onSuccess }: AuthForgotPasswordProps) {
 
       <AuthError message={formState.error} />
 
-      <AuthForm<ForgotPasswordFormValues> onSubmit={handleSubmit(onSubmit)}>
+      <AuthForm onSubmit={handleSubmit(onSubmit)}>
         <div className="space-y-2">
           <Label htmlFor="email" className="text-neutral-300">Email</Label>
           <Input

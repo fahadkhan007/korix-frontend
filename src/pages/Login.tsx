@@ -1,4 +1,3 @@
-import React from 'react';
 import { Auth, type AuthView } from '../components/ui/auth-form-1';
 import { DottedSurface } from '../components/ui/dotted-surface';
 import { useNavigate } from 'react-router-dom';

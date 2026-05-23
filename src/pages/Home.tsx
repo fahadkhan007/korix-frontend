@@ -1,6 +1,5 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Activity, Shield, Layers } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { SparklesCore } from '@/components/ui/sparkles';
 import { DottedSurface } from '@/components/ui/dotted-surface';
