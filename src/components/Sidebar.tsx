@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { 
   Settings2, 
-  Hash, MoreHorizontal, 
   ChevronRight, ChevronsUpDown, CheckSquare,
   LayoutDashboard, Users, Star, Bot, Sparkles, Plus, FolderKanban
 } from 'lucide-react';
