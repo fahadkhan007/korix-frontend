@@ -1,8 +1,8 @@
 import { io } from 'socket.io-client';
 import axios from 'axios';
 
-const SOCKET_URL = 'http://localhost:5000';
-// const SOCKET_URL = 'https://korix-backend.onrender.com';
+// const SOCKET_URL = 'http://localhost:5000';
+const SOCKET_URL = 'https://korix-backend.onrender.com';
 const API_URL    = 'https://korix-backend.onrender.com/api';
 
 // auth is a FUNCTION so Socket.IO calls it fresh on every connect/reconnect attempt.
