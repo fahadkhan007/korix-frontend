@@ -58,18 +58,22 @@ export default function TasksPage() {
       <div className="main-content">
         <Header />
 
-        <div className="tasks-container">
-          <div className="tasks-card">
-            <div className="tasks-header">
-              <h3 className="tasks-title"><CheckSquare size={18} /> All Tasks ({filtered.length})</h3>
+        <div className="flex-1 overflow-y-auto bg-[#0d1117] hide-scrollbar">
+          <div className="max-w-[1200px] mx-auto p-4 md:p-8 space-y-6">
+            
+            <div className="flex items-center justify-between pb-4 border-b border-[#30363d]">
+              <div className="flex items-center gap-2">
+                <CheckSquare size={20} className="text-[#8b949e]" />
+                <h1 className="text-xl font-semibold text-[#f0f6fc]">All Tasks ({filtered.length})</h1>
+              </div>
             </div>
 
             {/* Filter tabs */}
-            <div className="tasks-tabs">
+            <div className="flex gap-2 border-b border-[#30363d] pb-2">
               {statuses.map(s => (
                 <button 
                   key={s} 
-                  className={`tasks-tab ${filter === s ? 'active' : ''}`} 
+                  className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${filter === s ? 'bg-[#1f6feb]/10 text-[#58a6ff] border border-[#1f6feb]/30' : 'text-[#8b949e] hover:text-[#c9d1d9] hover:bg-[#21262d] border border-transparent'}`}
                   onClick={() => setFilter(s)}
                 >
                   {s === 'ALL' ? 'All Tasks' : STATUS_CONFIG[s]?.label}
@@ -77,45 +81,47 @@ export default function TasksPage() {
               ))}
             </div>
 
-            <div className="tasks-list">
+            <div className="space-y-4">
               {loading ? (
-                <div className="tasks-empty">Gathering your tasks…</div>
+                <div className="text-center py-12 text-sm text-[#8b949e]">Gathering your tasks…</div>
               ) : filtered.length === 0 ? (
-                <div className="tasks-empty">No tasks found. Take a break!</div>
+                <div className="text-center py-12 flex flex-col items-center justify-center border border-dashed border-[#30363d] rounded-md bg-[#0d1117]">
+                  <CheckSquare size={36} className="text-[#8b949e] mb-3 opacity-50" />
+                  <p className="text-sm text-[#8b949e]">No tasks found. Take a break!</p>
+                </div>
               ) : (
                 filtered.map(task => {
                   const sc = STATUS_CONFIG[task.status];
                   const pc = PRIORITY_CONFIG[task.priority];
                   return (
-                    <div key={task.id} className="global-task-item">
+                    <div key={task.id} className="bg-[#0d1117] border border-[#30363d] rounded-md p-4 hover:border-[#8b949e] transition-colors">
                       
-                      {/* Top Row: Title & Priority */}
-                      <div className="global-task-top">
-                        <span style={{ color: sc?.color }}>{sc?.icon}</span>
-                        <span className="global-task-title">{task.title}</span>
-                        <span className="global-task-priority" style={{ color: pc?.color }}>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-3 flex-1">
+                          <span style={{ color: sc?.color }}>{sc?.icon}</span>
+                          <span className="text-base font-semibold text-[#f0f6fc]">{task.title}</span>
+                        </div>
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded border border-[#30363d] bg-[#161b22]" style={{ color: pc?.color }}>
                           {task.priority}
                         </span>
                       </div>
 
-                      {/* Description */}
                       {task.description && (
-                        <p className="global-task-desc">{task.description}</p>
+                        <p className="text-sm text-[#8b949e] line-clamp-2 mb-4 pl-7">{task.description}</p>
                       )}
 
-                      {/* Meta Bottom Row */}
-                      <div className="global-task-meta">
-                        <Link to={`/projects/${task.projectId}`} className="global-task-project">
+                      <div className="flex items-center gap-4 text-xs text-[#8b949e] pl-7">
+                        <Link to={`/projects/${task.projectId}`} className="text-[#58a6ff] hover:underline font-medium">
                           {task.projectName}
                         </Link>
                         
-                        <div className="global-task-info">
+                        <div className="flex items-center gap-1.5 border-l border-[#30363d] pl-4">
                           <User size={12} />
                           <span>{task.assignee?.name || task.assignee?.email || 'Unassigned'}</span>
                         </div>
                         
                         {task.dueDate && (
-                          <div className="global-task-info">
+                          <div className="flex items-center gap-1.5 border-l border-[#30363d] pl-4">
                             <Calendar size={12} />
                             <span>{new Date(task.dueDate).toLocaleDateString()}</span>
                           </div>
@@ -129,6 +135,15 @@ export default function TasksPage() {
             </div>
           </div>
         </div>
+        <style>{`
+          .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+          }
+          .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+        `}</style>
       </div>
     </div>
   );

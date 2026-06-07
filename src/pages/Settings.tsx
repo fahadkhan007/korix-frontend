@@ -19,49 +19,47 @@ export default function SettingsPage() {
       <div className="main-content">
         <Header />
 
-        <div className="page-container dashboard-container">
-          <section className="card section-card" style={{ maxWidth: 600 }}>
-            <div className="section-header">
-              <h3 className="section-title">Account Details</h3>
+        <div className="flex-1 overflow-y-auto bg-[#0d1117] hide-scrollbar">
+          <div className="max-w-[600px] p-4 md:p-8 space-y-6">
+            
+            <div className="flex items-center gap-2 pb-4 border-b border-[#30363d]">
+              <h1 className="text-xl font-semibold text-[#f0f6fc]">Account Details</h1>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
-              {rows.map((row, i) => (
-                <div key={i} style={{
-                  display: 'flex', alignItems: 'center', gap: '1rem',
-                  padding: '0.875rem 0',
-                  borderBottom: i < rows.length - 1 ? '1px solid var(--color-border)' : 'none',
-                }}>
-                  <div style={{ color: 'var(--text-tertiary)', width: 20, flexShrink: 0, display: 'flex' }}>{row.icon}</div>
-                  <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', width: 110, flexShrink: 0 }}>{row.label}</span>
-                  <span style={{
-                    fontSize: '0.875rem',
-                    color: row.label === 'Verification' && !user?.isVerified ? 'var(--accent-amber)' : 'var(--text-primary)',
-                    fontWeight: 500,
-                  }}>
-                    {row.value}
-                  </span>
-                </div>
-              ))}
+            <div className="bg-[#0d1117] border border-[#30363d] rounded-md">
+              <div className="flex flex-col">
+                {rows.map((row, i) => (
+                  <div key={i} className={`flex items-center gap-4 p-4 ${i < rows.length - 1 ? 'border-b border-[#30363d]' : ''}`}>
+                    <div className="text-[#8b949e] w-5 shrink-0 flex justify-center">{row.icon}</div>
+                    <span className="text-sm text-[#8b949e] w-28 shrink-0">{row.label}</span>
+                    <span className={`text-sm font-medium ${row.label === 'Verification' && !user?.isVerified ? 'text-[#d29922]' : 'text-[#f0f6fc]'}`}>
+                      {row.value}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
-          </section>
 
-          {!user?.isVerified && (
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: '0.75rem',
-              padding: '1rem 1.25rem',
-              background: 'rgba(251,191,36,0.07)',
-              border: '1px solid rgba(251,191,36,0.2)',
-              borderRadius: 'var(--radius-md)',
-              maxWidth: 600,
-            }}>
-              <AlertCircle size={16} color="var(--accent-amber)" />
-              <span style={{ fontSize: '0.83rem', color: '#FCD34D' }}>
-                Your email is not verified. Check your inbox to unlock all features.
-              </span>
-            </div>
-          )}
+            {!user?.isVerified && (
+              <div className="flex items-center gap-3 p-4 bg-[#d29922]/10 border border-[#d29922]/30 rounded-md mt-6">
+                <AlertCircle size={16} className="text-[#d29922]" />
+                <span className="text-sm text-[#d29922]">
+                  Your email is not verified. Check your inbox to unlock all features.
+                </span>
+              </div>
+            )}
+            
+          </div>
         </div>
+        <style>{`
+          .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+          }
+          .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+        `}</style>
       </div>
     </div>
   );

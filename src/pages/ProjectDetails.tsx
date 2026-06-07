@@ -6,7 +6,7 @@ import ChatPanel from '../components/Chat/ChatPanel';
 import { usePageLoading } from '../context/LoadingContext';
 import {
   FolderKanban, Users, Plus, UserPlus, CheckSquare, Trash2,
-  MessageSquare, ChevronRight, Circle, Clock, AlertTriangle,
+  MessageSquare, ChevronRight, ChevronDown, Circle, Clock, AlertTriangle,
   CheckCircle2, ArrowUpRight, Shield, Eye, User, GitBranch,
 } from 'lucide-react';
 import { projectsService } from '../api/projects';
@@ -55,6 +55,7 @@ export default function ProjectDetails() {
   const [tasksLoading, setTasksLoading] = useState(true);
   const [selfRole, setSelfRole]     = useState<string | null>(null);
   const [activeTab, setActiveTab]   = useState<Tab>('overview');
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   // ── Modal states ──────────────────────────────────────────────────────────
   const [taskModal, setTaskModal]       = useState(false);
@@ -84,6 +85,7 @@ export default function ProjectDetails() {
   // ── Load data ─────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!projectId) return;
+    setActiveTab('overview'); // Reset tab on navigation to prevent confusion
     start();
     const fetch = async () => {
       try {
@@ -220,6 +222,12 @@ export default function ProjectDetails() {
           <div className="pd-breadcrumb">
             <Link to="/projects" className="pd-bc-link">Projects</Link>
             <ChevronRight size={14} className="pd-bc-sep" />
+            {project.parentId && (
+              <>
+                <Link to={`/projects/${project.parentId}`} className="pd-bc-link">Parent Project</Link>
+                <ChevronRight size={14} className="pd-bc-sep" />
+              </>
+            )}
             <span className="pd-bc-current">{project.name}</span>
           </div>
 
@@ -379,76 +387,148 @@ export default function ProjectDetails() {
 
           {/* TASKS TAB */}
           {activeTab === 'tasks' && (
-            <div className="pd-card pd-tasks-wrap">
-              <div className="pd-card-head" style={{ marginBottom: '1rem' }}>
-                <h3 className="pd-card-title"><CheckSquare size={15} /> Tasks ({tasks.length})</h3>
+            <div className="flex flex-col">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2">
+                  <CheckSquare size={18} className="text-[#8b949e]" />
+                  <h3 className="text-lg font-semibold text-[#f0f6fc]">Tasks ({tasks.length})</h3>
+                </div>
                 {canManage && (
-                  <button className="btn btn-accent btn-sm" onClick={() => { setTaskModal(true); setTaskError(''); }}>
+                  <button className="flex items-center gap-2 bg-[#238636] hover:bg-[#2ea043] text-white px-3 py-1.5 rounded-md text-sm font-medium transition-colors border border-[rgba(240,246,252,0.1)]" onClick={() => { setTaskModal(true); setTaskError(''); }}>
                     <Plus size={14} /> New Task
                   </button>
                 )}
               </div>
 
               {/* Kanban-style status columns */}
-              <div className="pd-kanban">
+              <div className="flex gap-4 items-start overflow-x-auto pb-32 hide-scrollbar">
                 {taskStatuses.map(status => {
                   const col = tasks.filter(t => t.status === status);
                   const meta = STATUS_META[status];
                   return (
-                    <div key={status} className="pd-kanban-col">
-                      <div className="pd-kanban-col-header" style={{ borderTopColor: meta.color }}>
-                        <span style={{ color: meta.color, display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <div key={status} className="w-[300px] shrink-0 flex flex-col gap-3 bg-[#161b22] border border-[#30363d] rounded-lg p-3">
+                      <div className="flex items-center justify-between pb-2 border-b-2" style={{ borderBottomColor: meta.color }}>
+                        <span className="flex items-center gap-2 text-xs font-bold uppercase" style={{ color: meta.color }}>
                           {meta.icon} {meta.label}
                         </span>
-                        <span className="pd-kanban-count">{col.length}</span>
+                        <span className="bg-[#0d1117] border border-[#30363d] text-[#8b949e] rounded-full px-2 py-0.5 text-[10px] font-semibold">{col.length}</span>
                       </div>
 
-                      {tasksLoading ? (
-                        <div className="pd-empty">Loading…</div>
-                      ) : col.length === 0 ? (
-                        <div className="pd-empty" style={{ padding: '1rem' }}>—</div>
-                      ) : (
-                        col.map(task => (
-                          <div key={task.id} className="pd-kanban-card">
-                            <div className="pd-kanban-card-top">
-                              <span className="pd-kanban-task-title">{task.title}</span>
-                              <span className="pd-kanban-priority" style={{ color: PRIORITY_COLOR[task.priority] }}>
-                                {task.priority}
-                              </span>
-                            </div>
-                            {task.description && (
-                              <p className="pd-kanban-desc">{task.description}</p>
-                            )}
-                            <div className="pd-kanban-meta">
-                              <span>{task.assignee?.name || task.assignee?.email || 'Unassigned'}</span>
-                              {task.dueDate && <span>Due {new Date(task.dueDate).toLocaleDateString()}</span>}
-                            </div>
-
-                            {canManage && (
-                              <div className="pd-kanban-actions">
-                                <select
-                                  className="pd-inline-select"
-                                  value={task.status}
-                                  onChange={e => updateTask(task.id, { status: e.target.value as TaskStatus })}
-                                >
-                                  {taskStatuses.map(s => <option key={s} value={s}>{STATUS_META[s].label}</option>)}
-                                </select>
-                                <select
-                                  className="pd-inline-select"
-                                  value={task.assigneeId || ''}
-                                  onChange={e => updateTask(task.id, { assigneeId: e.target.value || null })}
-                                >
-                                  <option value="">Unassigned</option>
-                                  {members.map(m => <option key={m.user.id} value={m.user.id}>{m.user.name || m.user.email}</option>)}
-                                </select>
-                                <button className="pd-delete-btn" onClick={() => deleteTask(task.id)} title="Delete task">
-                                  <Trash2 size={13} />
-                                </button>
+                      <div className="flex flex-col gap-3">
+                        {tasksLoading ? (
+                          <div className="text-center text-xs text-[#8b949e] py-4">Loading…</div>
+                        ) : col.length === 0 ? (
+                          <div className="text-center text-xs text-[#8b949e] py-4 border border-dashed border-[#30363d] rounded bg-[#0d1117]/50">No tasks</div>
+                        ) : (
+                          col.map(task => (
+                            <div key={task.id} className="bg-[#0d1117] border border-[#30363d] rounded-md p-3.5 hover:border-[#8b949e] transition-colors flex flex-col gap-2 cursor-pointer group shadow-sm">
+                              <div className="flex items-start justify-between gap-2">
+                                <span className="text-sm font-semibold text-[#f0f6fc] leading-snug">{task.title}</span>
+                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded border border-[#30363d] bg-[#161b22] shrink-0" style={{ color: PRIORITY_COLOR[task.priority] }}>
+                                  {task.priority}
+                                </span>
                               </div>
-                            )}
-                          </div>
-                        ))
-                      )}
+                              {task.description && (
+                                <p className="text-xs text-[#8b949e] line-clamp-2">{task.description}</p>
+                              )}
+                              <div className="flex items-center justify-between gap-2 text-xs text-[#8b949e] mt-1">
+                                <div className="flex items-center gap-1.5">
+                                  <User size={12} />
+                                  <span className="truncate max-w-[100px]">{task.assignee?.name || task.assignee?.email || 'Unassigned'}</span>
+                                </div>
+                                {task.dueDate && <span className="shrink-0">Due {new Date(task.dueDate).toLocaleDateString()}</span>}
+                              </div>
+
+                              {canManage && (
+                                <div className="flex items-center gap-2 mt-2 pt-2 border-t border-[#30363d]/50 opacity-0 group-hover:opacity-100 transition-opacity relative">
+                                  
+                                  {/* Status Custom Dropdown */}
+                                  <div className="relative">
+                                    <button
+                                      className="flex items-center justify-between gap-2 bg-[#0d1117] border border-[#30363d] rounded text-[#c9d1d9] hover:bg-[#161b22] text-[10px] py-1 px-2 w-[90px] transition-colors"
+                                      onClick={(e) => { e.stopPropagation(); setOpenDropdown(openDropdown === `status-${task.id}` ? null : `status-${task.id}`); }}
+                                    >
+                                      <span className="truncate">{STATUS_META[task.status]?.label}</span>
+                                      <ChevronDown size={10} className="shrink-0 opacity-70" />
+                                    </button>
+                                    
+                                    {openDropdown === `status-${task.id}` && (
+                                      <>
+                                        <div className="fixed inset-0 z-40" onClick={(e) => { e.stopPropagation(); setOpenDropdown(null); }} />
+                                        <div className="absolute left-0 top-full mt-1 w-[120px] bg-[#161b22] border border-[#30363d] rounded-md shadow-xl z-50 py-1 overflow-hidden">
+                                          {taskStatuses.map(s => (
+                                            <button
+                                              key={s}
+                                              className={`w-full text-left px-3 py-1.5 text-[10px] hover:bg-[#1f6feb] hover:text-white transition-colors ${task.status === s ? 'bg-[#1f6feb]/10 text-[#58a6ff]' : 'text-[#c9d1d9]'}`}
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                updateTask(task.id, { status: s });
+                                                setOpenDropdown(null);
+                                              }}
+                                            >
+                                              {STATUS_META[s].label}
+                                            </button>
+                                          ))}
+                                        </div>
+                                      </>
+                                    )}
+                                  </div>
+
+                                  {/* Assignee Custom Dropdown */}
+                                  <div className="relative flex-1 min-w-0">
+                                    <button
+                                      className="flex items-center justify-between gap-2 bg-[#0d1117] border border-[#30363d] rounded text-[#c9d1d9] hover:bg-[#161b22] text-[10px] py-1 px-2 w-full transition-colors"
+                                      onClick={(e) => { e.stopPropagation(); setOpenDropdown(openDropdown === `assignee-${task.id}` ? null : `assignee-${task.id}`); }}
+                                    >
+                                      <span className="truncate">
+                                        {task.assigneeId 
+                                          ? (members.find(m => m.user.id === task.assigneeId)?.user.name || members.find(m => m.user.id === task.assigneeId)?.user.email || 'Unassigned')
+                                          : 'Unassigned'}
+                                      </span>
+                                      <ChevronDown size={10} className="shrink-0 opacity-70" />
+                                    </button>
+                                    
+                                    {openDropdown === `assignee-${task.id}` && (
+                                      <>
+                                        <div className="fixed inset-0 z-40" onClick={(e) => { e.stopPropagation(); setOpenDropdown(null); }} />
+                                        <div className="absolute left-0 top-full mt-1 w-[140px] bg-[#161b22] border border-[#30363d] rounded-md shadow-xl z-50 py-1 overflow-hidden">
+                                          <button
+                                            className={`w-full text-left px-3 py-1.5 text-[10px] hover:bg-[#1f6feb] hover:text-white transition-colors ${!task.assigneeId ? 'bg-[#1f6feb]/10 text-[#58a6ff]' : 'text-[#c9d1d9]'}`}
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              updateTask(task.id, { assigneeId: null });
+                                              setOpenDropdown(null);
+                                            }}
+                                          >
+                                            Unassigned
+                                          </button>
+                                          {members.map(m => (
+                                            <button
+                                              key={m.user.id}
+                                              className={`w-full text-left px-3 py-1.5 text-[10px] truncate hover:bg-[#1f6feb] hover:text-white transition-colors ${task.assigneeId === m.user.id ? 'bg-[#1f6feb]/10 text-[#58a6ff]' : 'text-[#c9d1d9]'}`}
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                updateTask(task.id, { assigneeId: m.user.id });
+                                                setOpenDropdown(null);
+                                              }}
+                                            >
+                                              {m.user.name || m.user.email}
+                                            </button>
+                                          ))}
+                                        </div>
+                                      </>
+                                    )}
+                                  </div>
+
+                                  <button className="text-[#8b949e] hover:text-[#f85149] p-1 rounded hover:bg-[#f85149]/10 shrink-0 transition-colors" onClick={() => deleteTask(task.id)} title="Delete task">
+                                    <Trash2 size={13} />
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          ))
+                        )}
+                      </div>
                     </div>
                   );
                 })}
@@ -458,29 +538,40 @@ export default function ProjectDetails() {
 
           {/* SUB-PROJECTS TAB */}
           {activeTab === 'subprojects' && (
-            <div className="pd-card">
-              <div className="pd-card-head" style={{ marginBottom: '1rem' }}>
-                <h3 className="pd-card-title"><GitBranch size={15} /> Sub-Projects ({subProjects.length})</h3>
+            <div className="flex flex-col">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2">
+                  <GitBranch size={18} className="text-[#8b949e]" />
+                  <h3 className="text-lg font-semibold text-[#f0f6fc]">Sub-Projects ({subProjects.length})</h3>
+                </div>
                 {isAdmin && (
-                  <button className="btn btn-primary-blue btn-sm" onClick={() => { setSubProjModal(true); setSubError(''); }}>
+                  <button className="flex items-center gap-2 bg-[#1f6feb] hover:bg-[#388bfd] text-white px-3 py-1.5 rounded-md text-sm font-medium transition-colors border border-[rgba(240,246,252,0.1)]" onClick={() => { setSubProjModal(true); setSubError(''); }}>
                     <Plus size={14} /> New Sub-Project
                   </button>
                 )}
               </div>
               {subProjects.length === 0 ? (
-                <div className="pd-empty" style={{ padding: '2rem' }}>No sub-projects yet.</div>
+                <div className="text-center text-sm text-[#8b949e] py-12 border border-dashed border-[#30363d] rounded-md bg-[#0d1117]/50">
+                  No sub-projects yet.
+                </div>
               ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1rem' }}>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {subProjects.map(sub => (
-                    <Link key={sub.id} to={`/projects/${sub.id}`} style={{ textDecoration: 'none' }}>
-                      <div className="pd-sub-card">
-                        <div className="pd-sub-card-icon"><GitBranch size={16} /></div>
-                        <div>
-                          <div className="pd-sub-card-name">{sub.name}</div>
-                          <div className="pd-sub-card-meta">{sub.description || 'No description'}</div>
-                          <div className="pd-sub-card-date">{new Date(sub.createdAt).toLocaleDateString()}</div>
+                    <Link key={sub.id} to={`/projects/${sub.id}`} className="block">
+                      <div className="bg-[#0d1117] border border-[#30363d] rounded-md p-4 hover:border-[#8b949e] transition-colors flex items-start gap-4 cursor-pointer group shadow-sm h-full">
+                        <div className="w-8 h-8 rounded bg-[#161b22] border border-[#30363d] flex items-center justify-center shrink-0">
+                          <GitBranch size={16} className="text-[#8b949e]" />
                         </div>
-                        <ArrowUpRight size={14} className="pd-sub-card-arrow" />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2 mb-1">
+                            <h4 className="text-sm font-semibold text-[#f0f6fc] truncate group-hover:text-[#58a6ff] transition-colors">{sub.name}</h4>
+                            <ArrowUpRight size={14} className="text-[#8b949e] opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </div>
+                          <p className="text-xs text-[#8b949e] line-clamp-2 mb-3 min-h-[32px]">{sub.description || 'No description provided.'}</p>
+                          <div className="text-[10px] text-[#8b949e]">
+                            Created {new Date(sub.createdAt).toLocaleDateString()}
+                          </div>
+                        </div>
                       </div>
                     </Link>
                   ))}

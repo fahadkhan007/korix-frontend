@@ -10,38 +10,28 @@ export default function StarredPage() {
       <div className="main-content">
         <Header />
         
-        <div className="projects-page-container">
-          <section className="projects-section-card" style={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            textAlign: 'center', 
-            padding: '6rem 2rem',
-            minHeight: '60vh'
-          }}>
-            <div style={{
-              width: 72,
-              height: 72,
-              background: 'rgba(251, 191, 36, 0.1)',
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: '1.5rem'
-            }}>
-              <Star size={32} style={{ color: 'var(--accent-amber)' }} />
+        <div className="flex-1 overflow-y-auto bg-[#0d1117] hide-scrollbar">
+          <div className="max-w-[1200px] mx-auto p-4 md:p-8">
+            <div className="flex flex-col items-center justify-center text-center py-24 min-h-[60vh] border border-dashed border-[#30363d] rounded-md bg-[#0d1117]">
+              <div className="w-16 h-16 bg-[#d29922]/10 rounded-full flex items-center justify-center mb-6">
+                <Star size={32} className="text-[#d29922]" />
+              </div>
+              <h3 className="text-xl font-semibold text-[#f0f6fc] mb-2">No starred items</h3>
+              <p className="text-sm text-[#8b949e] max-w-md mx-auto leading-relaxed">
+                You haven't starred any projects or tasks yet. Click the star icon on important items to keep them easily accessible here.
+              </p>
             </div>
-            
-            <h3 style={{ fontSize: '1.25rem', color: 'var(--text-heading)', marginBottom: '0.5rem', fontWeight: 600 }}>
-              No starred items
-            </h3>
-            
-            <p style={{ color: 'var(--text-secondary)', maxWidth: 400, margin: '0 auto', lineHeight: 1.5 }}>
-              You haven't starred any projects or tasks yet. Click the star icon on important items to keep them easily accessible here.
-            </p>
-          </section>
+          </div>
         </div>
+        <style>{`
+          .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+          }
+          .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+        `}</style>
       </div>
     </div>
   );

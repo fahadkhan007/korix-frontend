@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
-import { Briefcase, CheckCircle, Clock, AlertTriangle, ArrowRight } from 'lucide-react';
+import { Briefcase, CheckCircle, Clock, AlertTriangle, CircleDot, Activity } from 'lucide-react';
 import { projectsService } from '../api/projects';
 import { authService } from '../api/auth';
 import { useAuth } from '../context/AuthContext';
@@ -46,9 +46,9 @@ export default function Dashboard() {
   };
 
   const stats = [
-    { title: 'Active Projects', value: String(projects.length), icon: <Briefcase size={18} color="#A5B4FC" />, trend: 'All time' },
-    { title: 'Tasks Completed', value: '0', icon: <CheckCircle size={18} color="var(--accent-green)" />, trend: 'Coming soon' },
-    { title: 'Hours Tracked', value: '0h', icon: <Clock size={18} color="var(--accent-amber)" />, trend: 'Coming soon' },
+    { title: 'Active Projects', value: String(projects.length), icon: <Briefcase size={16} className="text-[#8b949e]" /> },
+    { title: 'Tasks Completed', value: '0', icon: <CheckCircle size={16} className="text-[#3fb950]" /> },
+    { title: 'Hours Tracked', value: '0h', icon: <Clock size={16} className="text-[#8b949e]" /> },
   ];
 
   return (
@@ -57,108 +57,159 @@ export default function Dashboard() {
       <div className="main-content">
         <Header />
 
-        <div className="page-container dashboard-container">
-          <div className="pd-header-main" style={{ marginBottom: '1.5rem' }}>
-            <h1 className="pd-title" style={{ fontSize: '1.5rem', marginBottom: '0.25rem' }}>
-              Good to see you, {user?.name?.split(' ')[0] || 'there'} 👋
-            </h1>
-            <p className="pd-description" style={{ fontSize: '0.9rem' }}>
-              Here's what's happening across your workspace today.
-            </p>
-          </div>
-
-          {!user?.isVerified && (
-            <div className="verify-banner" style={{ background: 'rgba(226,178,3,0.1)', border: '1px solid rgba(226,178,3,0.2)', padding: '0.75rem 1rem', borderRadius: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <div className="verify-banner-text" style={{ color: 'var(--accent-amber)', display: 'flex', gap: '0.5rem', alignItems: 'center', fontSize: '0.875rem' }}>
-                <AlertTriangle size={16} />
-                <span><strong>Email not verified.</strong> Check your inbox or spam folder.</span>
-              </div>
-              <button className="btn btn-sm btn-outline" onClick={handleResend} disabled={resending}
-                style={{ borderColor: 'rgba(226,178,3,0.4)', color: 'var(--accent-amber)' }}>
-                {resending ? 'Sending…' : resendStatus || 'Resend'}
-              </button>
+        <div className="flex-1 overflow-y-auto bg-[#0d1117] hide-scrollbar">
+          <div className="max-w-[1200px] mx-auto p-4 md:p-8 space-y-6">
+            
+            {/* Header Section */}
+            <div className="pb-4 border-b border-[#30363d]">
+              <h1 className="text-2xl font-semibold text-[#f0f6fc]">
+                Good to see you, {user?.name?.split(' ')[0] || 'there'}
+              </h1>
+              <p className="text-[#8b949e] text-sm mt-1">
+                Here's what's happening across your workspace today.
+              </p>
             </div>
-          )}
-          {/* Stats */}
-          <section className="stats-grid">
-            {stats.map((stat, i) => (
-              <div key={i} className="card stat-card">
-                <div className="stat-header">
-                  <span className="stat-title">{stat.title}</span>
-                  <div className="stat-icon-wrapper">{stat.icon}</div>
-                </div>
-                <div className="stat-body">
-                  <h3 className="stat-value">{stat.value}</h3>
-                  <span className="stat-trend">{stat.trend}</span>
-                </div>
-              </div>
-            ))}
-          </section>
 
-          {/* Main grid */}
-          <div className="dashboard-grid">
-            {/* Projects */}
-            <section className="card section-card">
-              <div className="section-header">
-                <h3 className="section-title">Your Projects</h3>
-                <Link to="/projects" className="btn btn-sm btn-outline">View all</Link>
+            {/* Verification Banner */}
+            {!user?.isVerified && (
+              <div className="flex items-center justify-between bg-[rgba(187,128,9,0.1)] border border-[rgba(187,128,9,0.4)] p-4 rounded-md">
+                <div className="flex items-center gap-2 text-[#d29922] text-sm">
+                  <AlertTriangle size={16} />
+                  <span><strong className="font-semibold">Email not verified.</strong> Please check your inbox or spam folder to verify your account.</span>
+                </div>
+                <button 
+                  className="px-3 py-1.5 text-xs font-semibold text-[#d29922] bg-[rgba(187,128,9,0.1)] hover:bg-[rgba(187,128,9,0.2)] border border-[#bb8009] rounded-md transition-colors disabled:opacity-50"
+                  onClick={handleResend} 
+                  disabled={resending}
+                >
+                  {resending ? 'Sending…' : resendStatus || 'Resend verification email'}
+                </button>
               </div>
-              <div className="projects-list">
-                {loading ? (
-                  <div className="empty-state">Loading projects…</div>
-                ) : projects.length === 0 ? (
-                  <div className="empty-state">No projects yet. Hit <strong>New Project</strong> to create one.</div>
-                ) : (
-                  projects.slice(0, 6).map((project) => (
-                    <div key={project.id} className="project-item">
-                      <div className="project-info">
-                        <div className="project-dot">{project.name.charAt(0).toUpperCase()}</div>
-                        <h4 className="project-name">
-                          <Link to={`/projects/${project.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                            {project.name}
+            )}
+
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {stats.map((stat, i) => (
+                <div key={i} className="bg-[#0d1117] border border-[#30363d] rounded-md p-4 hover:border-[#8b949e] transition-colors cursor-default">
+                  <div className="flex items-center gap-2 text-[#8b949e] mb-2">
+                    {stat.icon}
+                    <span className="text-xs font-medium">{stat.title}</span>
+                  </div>
+                  <div className="text-2xl font-semibold text-[#f0f6fc]">
+                    {stat.value}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Main Content Layout (2/3 Projects, 1/3 Activity) */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+              
+              {/* Left Column (Projects) */}
+              <div className="lg:col-span-2 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-semibold text-[#f0f6fc]">Your Projects</h2>
+                  <Link to="/projects" className="text-sm text-[#58a6ff] hover:underline">
+                    View all
+                  </Link>
+                </div>
+                
+                <div className="bg-[#0d1117] border border-[#30363d] rounded-md overflow-hidden">
+                  {loading ? (
+                    <div className="p-8 text-center text-[#8b949e] text-sm border-b border-[#30363d]">Loading projects…</div>
+                  ) : projects.length === 0 ? (
+                    <div className="p-8 text-center text-[#8b949e] text-sm">
+                      No projects yet. Hit <strong className="text-[#c9d1d9]">New Project</strong> to create one.
+                    </div>
+                  ) : (
+                    projects.slice(0, 6).map((project, idx) => (
+                      <div 
+                        key={project.id} 
+                        className={`flex items-start justify-between p-4 hover:bg-[#161b22] transition-colors ${idx !== Math.min(projects.length, 6) - 1 ? 'border-b border-[#30363d]' : ''}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-md bg-[#21262d] border border-[#30363d] text-[#8b949e] flex items-center justify-center font-semibold text-xs shrink-0">
+                            {project.name.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <Link to={`/projects/${project.id}`} className="text-[#58a6ff] font-semibold text-base hover:underline">
+                              {project.name}
+                            </Link>
+                            <div className="text-xs text-[#8b949e] mt-1 flex items-center gap-3">
+                              <span className="flex items-center gap-1">
+                                <CircleDot size={12} className="text-[#8b949e]" /> Created {new Date(project.createdAt).toLocaleDateString()}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <div>
+                          <Link to={`/projects/${project.id}`} className="text-xs font-medium bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] text-[#c9d1d9] px-3 py-1.5 rounded-md transition-colors flex items-center gap-1">
+                            View
                           </Link>
-                        </h4>
+                        </div>
                       </div>
-                      <span className="meta-text" style={{ flexShrink: 0, fontSize: '0.75rem' }}>
-                        {new Date(project.createdAt).toLocaleDateString()}
-                      </span>
-                    </div>
-                  ))
-                )}
+                    ))
+                  )}
+                </div>
               </div>
-            </section>
 
-            {/* Activity */}
-            <section className="card section-card">
-              <div className="section-header">
-                <h3 className="section-title">Recent Activity</h3>
-              </div>
-              <div className="activity-feed">
-                <div className="activity-item">
-                  <div className="activity-dot" />
-                  <div className="activity-content">
-                    <p>Welcome to <strong style={{ color: 'var(--text-primary)' }}>Korix</strong>!</p>
-                    <span className="activity-time">Just now</span>
+              {/* Right Column (Activity Feed) */}
+              <div className="lg:col-span-1 space-y-4">
+                <h2 className="text-lg font-semibold text-[#f0f6fc]">Recent Activity</h2>
+                <div className="border border-[#30363d] rounded-md bg-[#0d1117] p-4">
+                  <div className="space-y-4">
+                    <div className="relative flex gap-3">
+                      <div className="absolute left-[11px] top-6 bottom-[-20px] w-[2px] bg-[#30363d]" />
+                      <div className="relative w-6 h-6 bg-[#21262d] border border-[#30363d] rounded-full flex items-center justify-center shrink-0 z-10">
+                        <Activity size={12} className="text-[#58a6ff]" />
+                      </div>
+                      <div className="flex flex-col pb-2">
+                        <div className="text-sm text-[#c9d1d9]">
+                          Welcome to <strong className="text-[#f0f6fc] font-semibold">Korix</strong>!
+                        </div>
+                        <span className="text-xs text-[#8b949e] mt-1">Just now</span>
+                      </div>
+                    </div>
+
+                    {projects.slice(0, 3).map((p, index) => (
+                      <div key={p.id} className="relative flex gap-3">
+                        {index !== Math.min(projects.length, 3) - 1 && (
+                          <div className="absolute left-[11px] top-6 bottom-[-20px] w-[2px] bg-[#30363d]" />
+                        )}
+                        <div className="relative w-6 h-6 bg-[#21262d] border border-[#30363d] rounded-full flex items-center justify-center shrink-0 z-10">
+                          <CheckCircle size={12} className="text-[#3fb950]" />
+                        </div>
+                        <div className="flex flex-col pb-2">
+                          <div className="text-sm text-[#c9d1d9]">
+                            Project <strong className="text-[#f0f6fc] font-semibold">{p.name}</strong> created
+                          </div>
+                          <span className="text-xs text-[#8b949e] mt-1">{new Date(p.createdAt).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-6">
+                    <Link to="/projects" className="text-xs font-medium text-[#8b949e] hover:text-[#58a6ff] transition-colors flex items-center gap-1">
+                      View all projects →
+                    </Link>
                   </div>
                 </div>
-                {projects.slice(0, 3).map((p) => (
-                  <div key={p.id} className="activity-item">
-                    <div className="activity-dot" style={{ background: 'var(--accent-green)', boxShadow: '0 0 8px rgba(52,211,153,0.5)' }} />
-                    <div className="activity-content">
-                      <p>Project <strong style={{ color: 'var(--text-primary)' }}>{p.name}</strong> created</p>
-                      <span className="activity-time">{new Date(p.createdAt).toLocaleDateString()}</span>
-                    </div>
-                  </div>
-                ))}
               </div>
 
-              <Link to="/projects" className="btn btn-ghost btn-sm" style={{ marginTop: '1rem', width: '100%', justifyContent: 'center' }}>
-                Go to Projects <ArrowRight size={14} />
-              </Link>
-            </section>
+            </div>
           </div>
         </div>
       </div>
+      <style>{`
+        .hide-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .hide-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
     </div>
   );
 }

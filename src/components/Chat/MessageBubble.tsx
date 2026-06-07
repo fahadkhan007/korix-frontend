@@ -22,7 +22,7 @@ export default function MessageBubble({ message, currentUserId }: Props) {
         <p className="bubble-content">{message.content}</p>
         <span className="bubble-time" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
           {time}
-          {isOwn && <CheckCheck size={12} color="#4BCE97" />}
+          {isOwn && <CheckCheck size={12} color="#8b949e" />}
         </span>
       </div>
     </div>
