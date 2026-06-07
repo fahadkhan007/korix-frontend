@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { 
   Settings2, 
-  ChevronRight, ChevronsUpDown, CheckSquare,
+  ChevronRight, CheckSquare,
   LayoutDashboard, Users, Star, Bot, Plus, FolderKanban, LogOut,
   PanelLeftClose, PanelLeftOpen
 } from 'lucide-react';
