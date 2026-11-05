@@ -2,10 +2,18 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { authService } from '../api/auth';
 
+export interface AuthUser {
+  id?: string;
+  name?: string;
+  email?: string;
+  isVerified?: boolean;
+  [key: string]: unknown;
+}
+
 interface AuthContextType {
   isAuthenticated: boolean;
-  user: any;
-  loginState: (user: any, accessToken: string, refreshToken: string) => void;
+  user: AuthUser | null;
+  loginState: (user: AuthUser, accessToken: string, refreshToken?: string | null) => void;
   logoutState: () => void;
   isLoading: boolean;
 }
@@ -14,7 +22,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -33,7 +41,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const { user } = await authService.profile();
         setUser(user);
         setIsAuthenticated(true);
-      } catch (error) {
+      } catch {
         // Both access and refresh tokens are dead — clear everything
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
@@ -46,9 +54,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     initAuth();
   }, []);
 
-  const loginState = (userData: any, accessToken: string, refreshToken: string) => {
+  const loginState = (userData: Record<string, unknown>, accessToken: string, refreshToken?: string | null) => {
     localStorage.setItem('access_token', accessToken);
-    localStorage.setItem('refresh_token', refreshToken);
+    if (refreshToken) localStorage.setItem('refresh_token', refreshToken);
+    else localStorage.removeItem('refresh_token');
     setUser(userData);
     setIsAuthenticated(true);
   };

@@ -152,7 +152,6 @@ function Auth({ className, defaultView = "sign-in", onNavigate, ...props }: Auth
               <AuthForgotPassword
                 key="forgot-password"
                 onSignIn={() => setView("sign-in")}
-                onSuccess={() => setView("reset-success")}
               />
             )}
             {state.view === "reset-success" && (
@@ -250,6 +249,7 @@ function AuthSignIn({ onForgotPassword, onSignUp }: AuthSignInProps) {
     setFormState((prev) => ({ ...prev, isLoading: true, error: null }));
     try {
       const response = await authService.login({ email: data.email, password: data.password });
+      if (!response?.accessToken || !response?.user) throw new Error("The server returned an incomplete login response.");
       loginState(response.user, response.accessToken, response.refreshToken);
       // If there's a pending invite, go complete it; otherwise go to dashboard
       const pendingInvite = localStorage.getItem('pending_invite_token');
@@ -388,7 +388,7 @@ function AuthSignUp({ onSignIn }: AuthSignUpProps) {
       const registerResponse = await authService.register({ name: data.name, email: data.email, password: data.password });
 
       // If the register endpoint already returns tokens (no email verification), use them directly
-      if (registerResponse?.accessToken && registerResponse?.refreshToken) {
+      if (registerResponse?.accessToken && registerResponse?.user) {
         loginState(registerResponse.user, registerResponse.accessToken, registerResponse.refreshToken);
         const pendingInvite = localStorage.getItem('pending_invite_token');
         navigate(pendingInvite ? '/projects/join' : '/dashboard');
@@ -398,13 +398,14 @@ function AuthSignUp({ onSignIn }: AuthSignUpProps) {
       // Otherwise try a normal login with the just-created credentials
       try {
         const response = await authService.login({ email: data.email, password: data.password });
+        if (!response?.accessToken || !response?.user) throw new Error("The server returned an incomplete login response.");
         loginState(response.user, response.accessToken, response.refreshToken);
         const pendingInvite = localStorage.getItem('pending_invite_token');
         navigate(pendingInvite ? '/projects/join' : '/dashboard');
       } catch (loginErr: unknown) {
-        // Login failed — likely because email verification is required.
-        // Redirect to verify-email notice without showing an error.
-        navigate('/verify-email');
+        const status = (loginErr as { response?: { status?: number } }).response?.status;
+        if (status === 401 || status === 403) navigate('/verify-email');
+        else throw loginErr;
       }
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } }; message?: string };
@@ -534,10 +535,9 @@ function AuthSignUp({ onSignIn }: AuthSignUpProps) {
 
 interface AuthForgotPasswordProps {
   onSignIn: () => void;
-  onSuccess: () => void;
 }
 
-function AuthForgotPassword({ onSignIn, onSuccess }: AuthForgotPasswordProps) {
+function AuthForgotPassword({ onSignIn }: AuthForgotPasswordProps) {
   const [formState, setFormState] = React.useState<FormState>({
     isLoading: false,
     error: null,
@@ -549,17 +549,10 @@ function AuthForgotPassword({ onSignIn, onSuccess }: AuthForgotPasswordProps) {
     defaultValues: { email: "" },
   });
 
-  const onSubmit = async (_data: ForgotPasswordFormValues) => {
-    setFormState((prev) => ({ ...prev, isLoading: true, error: null }));
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1500)); // Simulate API call
-      onSuccess();
-    } catch {
-      setFormState((prev) => ({ ...prev, error: "An unexpected error occurred" }));
-    } finally {
-      setFormState((prev) => ({ ...prev, isLoading: false }));
-    }
-  };
+  const onSubmit = () => setFormState((prev) => ({
+    ...prev,
+    error: "Password reset is not available yet. Please contact support.",
+  }));
 
   return (
     <motion.div
